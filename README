@@ -1,6 +1,23 @@
+Build environment for hi35xx devices with hi3516d support specifically.
+
+AK-HD54F24 SOC Hi3516A
+
+$wc.UploadString("http://192.168.1.110/form/sys_get","Group=DeviceInfo")
+
+<?xml version="1.0" encoding="utf-8"?>
+<Message>
+<Header class="sys_get"></Header>
+<result code="200">Successfully</result>
+<DeviceInfo>
+        <DeviceID><string>V6202IR-OV4689</string></DeviceID>
+        <Firmware><string>V1.04.10-160812</string></Firmware>
+        <SerialNum><string>071Dxxxxxxxx</string></SerialNum>
+        <Mac><string>00:2a:2a:xx:xx:xx</string></Mac>
+</DeviceInfo>
+</Message>
 
 
-Dockerfile:
+Dockerfile - Build environment:
 #######################################################################################################################
 
 FROM debian AS HisiBuilder
@@ -59,4 +76,46 @@ In container run:
 #######################################################################################################################
 make hi3516d_defconfig -j5
 FORCE_UNSAFE_CONFIGURE=1 make -j5
+
+
+
+U-Boot: (Load kernel uImage from TFTPD)
+#######################################################################################################################
+
+U-Boot 2010.06 (May 18 2015 - 09:40:27)
+
+Check spi flash controller v350... Found
+Spi(cs1) ID: 0xC2 0x20 0x18 0xC2 0x20 0x18
+Spi(cs1): Block:64KB Chip:16MB Name:"MX25L128XX"
+In:    serial
+Out:   serial
+Err:   serial
+Hit any key to stop autoboot:  0
+hisilicon #
+
+hisilicon # printenv
+bootcmd=sf probe 0;sf read 0x82000000 0x50000 0x2b0000;bootm 0x82000000
+bootdelay=1
+baudrate=115200
+ethaddr=00:00:23:34:45:66
+ipaddr=192.168.6.99
+serverip=192.168.6.10
+netmask=255.255.252.0
+bootfile="uImage"
+board=hi3516d
+bootargs=mem=96M console=ttyAMA0,115200 root=/dev/mtdblock2 rootfstype=jffs2 mtdparts=hi_sfc:320K(boot),2752K(kernel),2M(rootfs),11M(data)
+stdin=serial
+stdout=serial
+stderr=serial
+verify=n
+ver=U-Boot 2010.06 (May 18 2015 - 09:40:27)
+
+Environment size: 455/65532 bytes
+
+mii info
+
+PHY 0x01: OUI = 0x90C3, Model = 0x05, Rev = 0x04, 100baseT, FDX
+
+bootp 0x82000000 / tftp 0x82000000 uImage
+bootm 0x82000000
 
