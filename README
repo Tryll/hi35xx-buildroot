@@ -1,6 +1,6 @@
 Build environment for hi35xx devices with hi3516d support specifically.
 
-AK-HD54F24 SOC Hi3516A
+AK-HD54F24 DM540M-4  based on SOC Hi3516A
 
 $wc.UploadString("http://192.168.1.110/form/sys_get","Group=DeviceInfo")
 
