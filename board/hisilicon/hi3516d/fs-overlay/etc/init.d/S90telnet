@@ -16,6 +16,9 @@ cp fw_env.config group hostname hosts passwd shadow profile /flash/etc/
 # Symlinking flash etc files to /etc - for that persistent touch.
 /bin/etc-flash-link.sh
 
+# Run flash init.sh if it exists 
+[ -f /flash/init.sh ] && /flash/init.sh 
+
 # starting telnetd for now. dropbear later.
 telnetd &
 
