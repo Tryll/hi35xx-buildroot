@@ -17,6 +17,7 @@ cp fw_env.config group hostname hosts passwd shadow profile /flash/etc/
 /bin/etc-flash-link.sh
 
 # Run flash init.sh if it exists 
+[ ! -f /flash/init.sh ] && echo -e "#!/bin/sh\n# Place init logic here\n\n" > /flash/init.sh && chmod a+x /flash/init.sh
 [ -f /flash/init.sh ] && /flash/init.sh 
 
 # starting telnetd for now. dropbear later.
