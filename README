@@ -74,6 +74,7 @@ docker run --rm --it -m 4GB id
 
 In container run:
 #######################################################################################################################
+git pull
 make hi3516d_defconfig
 FORCE_UNSAFE_CONFIGURE=1 make -j2
 
