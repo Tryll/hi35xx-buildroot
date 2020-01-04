@@ -1,9 +1,24 @@
 #!/bin/sh
 # 
-# Start telnetd
+# Mapping /etc RW tmpfs and symlinking in flash etc files
 #
 
+# Mirroring RO image to tmpfs
+mkdir /tmp/etc
+cp -a /etc/* /tmp/etc/
+mount /tmp/etc /etc
 
+# Creating flash store with skeleton files
+mkdir /flash/etc
+cd /etc
+cp fw_env.config group hostname hosts passwd shadow profile /flash/etc/
+
+# Symlinking flash etc files to /etc - for that persistent touch.
+/bin/etc-flash-link.sh
+
+# starting telnetd for now. dropbear later.
 telnetd &
+
+
 
 
