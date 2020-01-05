@@ -86,10 +86,10 @@ case "$1" in
         ;;
   stop)
         echo "FlashInit: Unmounting.. "
-        unmount /var/www
-        unmount /root
-        unmount /etc
-        unmount /flash        
+        umount /var/www
+        umount /root
+        umount /etc
+        umount /flash        
         
         #[ $? = 0 ] && echo "OK" || echo "FAIL"
         ;;
