@@ -42,7 +42,7 @@ if [[ $MAGIC = $JFFS2_MAGIC ]]; then
         fi
 fi
 
-if [[ JFFS2_FORMAT = y ]]; then
+if [[ $JFFS2_FORMAT = y ]]; then
         echo "FlashInit: Formating $FLASHDEVICE and mounting to $FLASHTARGET"
 
         flash_eraseall -j $FLASHDEVICEMTD
