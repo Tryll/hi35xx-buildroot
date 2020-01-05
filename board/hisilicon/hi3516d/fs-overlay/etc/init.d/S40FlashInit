@@ -19,7 +19,7 @@ mount /tmp/etc /etc
 rm -rf /etc/dropbear
 
 # Abort FLASH storage if /flash does not exist
-if [[ ! -d /flash ]]; then 
+if [[ ! -d $FLASHTARGET ]]; then 
         
         echo "FlashInit: $FLASHTARGET does not exist on rootfs, skipping symlinking of $FLASHTARGET/etc"
         exit
