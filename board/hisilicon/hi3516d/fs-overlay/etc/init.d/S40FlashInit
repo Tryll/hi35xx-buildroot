@@ -11,12 +11,12 @@ FLASHTARGET=/flash
 
 case "$1" in
   start)
-        echo "FlashInit: Preparing tmpfs and flash-symlinked /etc and /root (RW)"
+        echo "FlashInit: Mounting /etc=/tmp/etc, /root=$FLASHTARGET/root and diff-symlinking $FLASHTARGET/etc=>/etc"
 
         mkdir /tmp/etc
         cp -a /etc/* /tmp/etc/
         mount /tmp/etc /etc
-        # Removing  dropbear symlink, for etc-flash-link to work and be able to symlink files in that folder.
+        # Removing  dropbear symlink, for etc-diff-symlink to work and be able to symlink files in that folder.
         rm -rf /etc/dropbear
 
         # Abort FLASH storage if /flash does not exist
@@ -43,6 +43,10 @@ case "$1" in
                 fi
                 
                 JFFS2_FORMAT=n 
+                
+                echo "FlashInit: Symlinking $FLASHTARGET/etc (etc-flash-symlink.sh)"
+                /bin/etc-flash-symlink.sh
+                
         fi
 
         if [[ $JFFS2_FORMAT = y ]]; then
@@ -58,7 +62,7 @@ case "$1" in
 
                 # Copy /root base
                 mkdir $FLASHTARGET/root
-                cp -a /root/ $FLASHTARGET/root/
+                cp -a /root/ $FLASHTARGET/
                 mount $FLASHTARGET/root /root        
 
                 # Prepare dropbear hostkey in flash
@@ -72,12 +76,14 @@ case "$1" in
                 mkdir -p $FLASHTARGET/var/www
                 echo Hello World! > $FLASHTARGET/var/www/index.html
                 mount $FLASHTARGET/var/www /var/www
+                               
+                echo "FlashInit: Symlinking $FLASHTARGET/etc (etc-flash-symlink.sh)"
+                /bin/etc-flash-symlink.sh
                 
+                # Set default password as empty to allow ssh in and first change via web.
+                echo -e "\n\n" | passwd
 
         fi
-
-        echo "FlashInit: Symlinking $FLASHTARGET/etc (etc-flash-symlink.sh)"
-        /bin/etc-flash-symlink.sh
 
         echo "FlashInit: Executing $FLASHTARGET/init.sh"
         # Run flash init.sh if it exists 
