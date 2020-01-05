@@ -34,8 +34,6 @@ case "$1" in
                 echo "FlashInit: Mounting $FLASHDEVICE to $FLASHTARGET"
                 mount -t jffs2 $FLASHDEVICE $FLASHTARGET
 
-                JFFS2_FORMAT=n                
-
                 if [[ ! $? -eq 0 ]]; then
                         echo "FlashInit: Error mounting $FLASHDEVICE, darkness is comming."                        
                 else
@@ -43,6 +41,8 @@ case "$1" in
                         mount $FLASHTARGET/root /root
                         mount $FLASHTARGET/var/www /var/www
                 fi
+                
+                JFFS2_FORMAT=n 
         fi
 
         if [[ $JFFS2_FORMAT = y ]]; then
