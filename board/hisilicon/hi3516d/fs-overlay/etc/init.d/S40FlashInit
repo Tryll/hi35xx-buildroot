@@ -9,11 +9,12 @@ cp -a /etc/* /tmp/etc/
 mount /tmp/etc /etc
 
 # FLASH: Preparing Volume
-flash=$(blkid | grep mtdblock3 | grep ext)
+flash=$(stat -f /dev/mtd3 | grep Type | grep tmpfs)
 if [[ $? != 0 ]]; then
-        echo "mtdblock3: Creating new UBI volume"
-        mkfs.ext2 /dev/mtdblock3
-        mount /dev/mtdblock3 /flash
+        echo "mtdblock3: Creating new JFFS2 volume"
+
+        flash_eraseall -j /dev/mtd3
+        mount -t jffs2 /dev/mtdblock3 /flash
 
         # copy base structure
         mkdir /flash/etc
@@ -22,9 +23,10 @@ if [[ $? != 0 ]]; then
 
 else
 
-        echo "mtdblock3: Mounting existing UBI volume"
-        mount /dev/mtdblock3 /flash
+        echo "mtdblock3: Mounting existing JFFS2 volume"
+        mount -t jffs2 /dev/mtdblock3 /flash
 fi
+
 
 # FLASH: Symlinking flash etc files to /etc - for that persistent touch.
 /bin/etc-flash-link.sh
