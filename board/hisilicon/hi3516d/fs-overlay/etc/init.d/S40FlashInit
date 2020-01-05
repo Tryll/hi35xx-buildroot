@@ -35,8 +35,7 @@ case "$1" in
                 mount -t jffs2 $FLASHDEVICE $FLASHTARGET
 
                 if [[ ! $? -eq 0 ]]; then
-                        echo "FlashInit: Error mounting $FLASHDEVICE, recovery skipped."
-                        JFFS2_FORMAT=y
+                        echo "FlashInit: Error mounting $FLASHDEVICE, bad stuff hanneps."                        
                 else
                         # Redirect /root to flash as well.
                         mount $FLASHTARGET/root /root
