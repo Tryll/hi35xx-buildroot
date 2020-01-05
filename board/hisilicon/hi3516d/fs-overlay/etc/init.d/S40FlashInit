@@ -43,8 +43,6 @@ fi
 [ -f /flash/init.sh ] && /flash/init.sh 
 
 
-# starting telnetd for now. dropbear later.
-telnetd &
 
 
 
