@@ -55,7 +55,7 @@ if [[ $JFFS2_FORMAT = y ]]; then
                 
         # Copy /root base
         mkdir $FLASHTARGET/root
-        cp -a /root $FLASHTARGET/root
+        cp -a /root/ $FLASHTARGET/root/
         mount $FLASHTARGET/root /root        
          
         # Prepare dropbear hostkey in flash
