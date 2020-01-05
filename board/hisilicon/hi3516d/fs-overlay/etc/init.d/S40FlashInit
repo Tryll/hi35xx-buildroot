@@ -34,8 +34,10 @@ case "$1" in
                 echo "FlashInit: Mounting $FLASHDEVICE to $FLASHTARGET"
                 mount -t jffs2 $FLASHDEVICE $FLASHTARGET
 
+                $JFFS2_FORMAT=n                
+
                 if [[ ! $? -eq 0 ]]; then
-                        echo "FlashInit: Error mounting $FLASHDEVICE, bad stuff hanneps."                        
+                        echo "FlashInit: Error mounting $FLASHDEVICE, darkness is comming."                        
                 else
                         # Redirect /root to flash as well.
                         mount $FLASHTARGET/root /root
