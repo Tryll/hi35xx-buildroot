@@ -6,6 +6,7 @@
 JFFS2_FORMAT=y
 JFFS2_MAGIC=0x1985
 FLASHDEVICE=/dev/mtdblock3
+FLASHDEVICEMTD=/dev/mtd3
 FLASHTARGET=/flash
 
 # Mirroring RO image to tmpfs
@@ -35,29 +36,32 @@ if [[ $MAGIC = $JFFS2_MAGIC ]]; then
         if [[ ! $? -eq 0 ]]; then
                 echo "FlashInit: Error mounting $FLASHDEVICE, recovery skipped."
                 JFFS2_FORMAT=y
+        else
+                # Redirect /root to flash as well.
+                mount $FLASHTARGET/root /root
         fi
 fi
 
 if [[ JFFS2_FORMAT = y ]]; then
         echo "FlashInit: Formating $FLASHDEVICE and mounting to $FLASHTARGET"
 
-        flash_eraseall -j /dev/mtd3
-        mount -t jffs2 /dev/mtdblock3 $FLASHTARGET
+        flash_eraseall -j $FLASHDEVICEMTD
+        mount -t jffs2 $FLASHDEVICE $FLASHTARGET
 
-        # Copy base structure
+        # Copy primery etc structure
         mkdir $FLASHTARGET/etc
         cd /etc
         cp fw_env.config group hostname hosts passwd shadow profile $FLASHTARGET/etc/
                 
+        # Copy /root base
         mkdir $FLASHTARGET/root
         cp -a /root $FLASHTARGET/root
         mount $FLASHTARGET/root /root        
          
-        # prepare dropbear hostkey in flash
+        # Prepare dropbear hostkey in flash
+        echo "FlashInit: Iniitalizing DropBear"
         mkdir $FLASHTARGET/etc/dropbear
-        dropbearkey -t ecdsa -f $FLASHTARGET/etc/dropbear/dropbear_ecdsa_host_key
-        
-
+        dropbearkey -t ecdsa -f $FLASHTARGET/etc/dropbear/dropbear_ecdsa_host_key       
 
 fi
   
