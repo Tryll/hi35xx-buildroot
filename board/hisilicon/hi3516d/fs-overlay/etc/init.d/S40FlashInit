@@ -70,7 +70,7 @@ case "$1" in
                 mkdir $FLASHTARGET/etc/lighttpd
                 cp /etc/lighttpd/lighttpd.conf $FLASHTARGET/etc/lighttpd/
                 mkdir $FLASHTARGET/var/www
-                echo Hello World! > $FLASHTARGET/var/www
+                echo Hello World! > $FLASHTARGET/var/www/index.html
                 mount $FLASHTARGET/var/www /var/www
                 
 
