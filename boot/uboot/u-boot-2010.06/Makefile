@@ -3287,8 +3287,12 @@ hi3520d_config: unconfig
 hi3535_config: unconfig
 	@$(MKCONFIG) $(@:_config=) arm hi3535 hi3535 NULL hi3535
 
+hi3516d_config: unconfig
+	@${MKCONFIG} hi3516d arm hi3516d hi3516d NULL hi3516d
+
 hi3516a_config: unconfig
 	@$(MKCONFIG) hi3516a arm hi3516a hi3516a NULL hi3516a
+
 hi3516a_spinand_config: unconfig
 	@$(MKCONFIG) hi3516a_spinand arm hi3516a hi3516a NULL hi3516a
 
