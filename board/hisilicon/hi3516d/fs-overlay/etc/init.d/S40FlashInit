@@ -4,44 +4,67 @@
 #
 
 # Mirroring RO image to tmpfs
+echo "FlashInit: Preparing tmpfs and flash-symlinked /etc and /root (RW)"
+
 mkdir /tmp/etc
 cp -a /etc/* /tmp/etc/
 mount /tmp/etc /etc
 # Removing  dropbear symlink, for etc-flash-link to work and be able to symlink files in that folder.
 rm -rf /etc/dropbear
 
-# FLASH: Preparing Volume
-flash=$(stat -f /dev/mtd3 | grep Type | grep tmpfs)
-if [[ $? != 0 ]]; then
-        echo "mtdblock3: Creating new JFFS2 volume"
+# Abort FLASH storage if /flash does not exist
+if [[ ! -d /flash ]]; then 
+        
+        echo "FlashInit: /flash does not exist on rootfs, aborting"
+        exit
+fi
+
+# Check if flash is JFFS2 ready
+JFFS2_FORMAT=y
+JFFS2_MAGIC=0x1985
+FLASHDEVICE=/dev/mtdblock3
+
+MAGIC=$(head -c 2 $FLASHDEVICE | od -An -t u2 | awk '{ printf("0x%x",$1) }' )
+
+# MAGIC FOUND - Trying to mount partition
+if [[ $MAGIC = $JFFS2_MAGIC ]]; then
+        echo "FlashInit: Mounting $FLASHDEVICE to /flash"
+        mount -t jffs2 $FLASHDEVICE /flash && JFFS2_FORMAT=n
+        if [[ JFFS2_FORMAT = y ]]; then
+                echo "FlashInit: Error mounting $FLASHDEVICE, recovery skipped."
+        fi
+fi
+
+if [[ JFFS2_FORMAT = y ]]; then
+        echo "FlashInit: Formating $FLASHDEVICE and mounting to /flash"
 
         flash_eraseall -j /dev/mtd3
         mount -t jffs2 /dev/mtdblock3 /flash
 
-        # copy base structure
+        # Copy base structure
         mkdir /flash/etc
         cd /etc
         cp fw_env.config group hostname hosts passwd shadow profile /flash/etc/
+                
+        mkdir /flash/root
+        cp -a /root /flash/root
+        mount /flash/root /root        
          
         # prepare dropbear hostkey in flash
         mkdir /flash/etc/dropbear
         dropbearkey -t ecdsa -f /flash/etc/dropbear/dropbear_ecdsa_host_key
         
-        
-else
 
-        echo "mtdblock3: Mounting existing JFFS2 volume"
-        mount -t jffs2 /dev/mtdblock3 /flash
+
 fi
+  
+echo "FlashInit: Symlinking /flash/etc (etc-flash-symlink.sh)"
+/bin/etc-flash-symlink.sh
 
-
-# FLASH: Symlinking flash etc files to /etc - for that persistent touch.
-/bin/etc-flash-link.sh
-
+echo "FlashInit: Executing /flash/init.sh"
 # Run flash init.sh if it exists 
 [ ! -f /flash/init.sh ] && echo -e "#!/bin/sh\n# Place init logic here\n\n" > /flash/init.sh && chmod a+x /flash/init.sh
 [ -f /flash/init.sh ] && /flash/init.sh 
-
 
 
 
