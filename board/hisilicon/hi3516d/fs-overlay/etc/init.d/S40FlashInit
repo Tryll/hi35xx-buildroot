@@ -7,6 +7,8 @@
 mkdir /tmp/etc
 cp -a /etc/* /tmp/etc/
 mount /tmp/etc /etc
+# Removing  dropbear symlink, for etc-flash-link to work and be able to symlink files in that folder.
+rm -rf /etc/dropbear
 
 # FLASH: Preparing Volume
 flash=$(stat -f /dev/mtd3 | grep Type | grep tmpfs)
@@ -24,6 +26,7 @@ if [[ $? != 0 ]]; then
         # prepare dropbear hostkey in flash
         mkdir /flash/etc/dropbear
         dropbearkey -t ecdsa -f /flash/etc/dropbear/dropbear_ecdsa_host_key
+        
         
 else
 
