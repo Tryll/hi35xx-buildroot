@@ -9,69 +9,94 @@ FLASHDEVICE=/dev/mtdblock3
 FLASHDEVICEMTD=/dev/mtd3
 FLASHTARGET=/flash
 
-# Mirroring RO image to tmpfs
-echo "FlashInit: Preparing tmpfs and flash-symlinked /etc and /root (RW)"
+case "$1" in
+  start)
+        echo "FlashInit: Preparing tmpfs and flash-symlinked /etc and /root (RW)"
 
-mkdir /tmp/etc
-cp -a /etc/* /tmp/etc/
-mount /tmp/etc /etc
-# Removing  dropbear symlink, for etc-flash-link to work and be able to symlink files in that folder.
-rm -rf /etc/dropbear
+        mkdir /tmp/etc
+        cp -a /etc/* /tmp/etc/
+        mount /tmp/etc /etc
+        # Removing  dropbear symlink, for etc-flash-link to work and be able to symlink files in that folder.
+        rm -rf /etc/dropbear
 
-# Abort FLASH storage if /flash does not exist
-if [[ ! -d $FLASHTARGET ]]; then 
-        
-        echo "FlashInit: $FLASHTARGET does not exist on rootfs, skipping symlinking of $FLASHTARGET/etc"
-        exit
-fi
+        # Abort FLASH storage if /flash does not exist
+        if [[ ! -d $FLASHTARGET ]]; then 
 
-# Check if flash is JFFS2 ready
-MAGIC=$(head -c 2 $FLASHDEVICE | od -An -t u2 | awk '{ printf("0x%x",$1) }' )
-
-# MAGIC FOUND - Trying to mount partition
-if [[ $MAGIC = $JFFS2_MAGIC ]]; then
-        echo "FlashInit: Mounting $FLASHDEVICE to $FLASHTARGET"
-        mount -t jffs2 $FLASHDEVICE $FLASHTARGET
-
-        if [[ ! $? -eq 0 ]]; then
-                echo "FlashInit: Error mounting $FLASHDEVICE, recovery skipped."
-                JFFS2_FORMAT=y
-        else
-                # Redirect /root to flash as well.
-                mount $FLASHTARGET/root /root
+                echo "FlashInit: $FLASHTARGET does not exist on rootfs, skipping symlinking of $FLASHTARGET/etc"
+                exit
         fi
-fi
 
-if [[ $JFFS2_FORMAT = y ]]; then
-        echo "FlashInit: Formating $FLASHDEVICE and mounting to $FLASHTARGET"
+        # Check if flash is JFFS2 ready
+        MAGIC=$(head -c 2 $FLASHDEVICE | od -An -t u2 | awk '{ printf("0x%x",$1) }' )
 
-        flash_eraseall -j $FLASHDEVICEMTD
-        mount -t jffs2 $FLASHDEVICE $FLASHTARGET
+        # MAGIC FOUND - Trying to mount partition
+        if [[ $MAGIC = $JFFS2_MAGIC ]]; then
+                echo "FlashInit: Mounting $FLASHDEVICE to $FLASHTARGET"
+                mount -t jffs2 $FLASHDEVICE $FLASHTARGET
 
-        # Copy primery etc structure
-        mkdir $FLASHTARGET/etc
-        cd /etc
-        cp fw_env.config group hostname hosts passwd shadow profile $FLASHTARGET/etc/
-                
-        # Copy /root base
-        mkdir $FLASHTARGET/root
-        cp -a /root/ $FLASHTARGET/root/
-        mount $FLASHTARGET/root /root        
-         
-        # Prepare dropbear hostkey in flash
-        echo "FlashInit: Iniitalizing DropBear"
-        mkdir $FLASHTARGET/etc/dropbear
-        dropbearkey -t ecdsa -f $FLASHTARGET/etc/dropbear/dropbear_ecdsa_host_key       
+                if [[ ! $? -eq 0 ]]; then
+                        echo "FlashInit: Error mounting $FLASHDEVICE, recovery skipped."
+                        JFFS2_FORMAT=y
+                else
+                        # Redirect /root to flash as well.
+                        mount $FLASHTARGET/root /root
+                fi
+        fi
 
-fi
-  
-echo "FlashInit: Symlinking $FLASHTARGET/etc (etc-flash-symlink.sh)"
-/bin/etc-flash-symlink.sh
+        if [[ $JFFS2_FORMAT = y ]]; then
+                echo "FlashInit: Formating $FLASHDEVICE and mounting to $FLASHTARGET"
 
-echo "FlashInit: Executing $FLASHTARGET/init.sh"
-# Run flash init.sh if it exists 
-[ ! -f $FLASHTARGET/init.sh ] && echo -e "#!/bin/sh\n# Place init logic here\n\n" > $FLASHTARGET/init.sh && chmod a+x $FLASHTARGET/init.sh
-[ -f $FLASHTARGET/init.sh ] && $FLASHTARGET/init.sh 
+                flash_eraseall -j $FLASHDEVICEMTD
+                mount -t jffs2 $FLASHDEVICE $FLASHTARGET
+
+                # Copy primery etc structure
+                mkdir $FLASHTARGET/etc
+                cd /etc
+                cp fw_env.config group hostname hosts passwd shadow profile $FLASHTARGET/etc/
+
+                # Copy /root base
+                mkdir $FLASHTARGET/root
+                cp -a /root/ $FLASHTARGET/root/
+                mount $FLASHTARGET/root /root        
+
+                # Prepare dropbear hostkey in flash
+                echo "FlashInit: Iniitalizing DropBear"
+                mkdir $FLASHTARGET/etc/dropbear
+                dropbearkey -t ecdsa -f $FLASHTARGET/etc/dropbear/dropbear_ecdsa_host_key       
+
+        fi
+
+        echo "FlashInit: Symlinking $FLASHTARGET/etc (etc-flash-symlink.sh)"
+        /bin/etc-flash-symlink.sh
+
+        echo "FlashInit: Executing $FLASHTARGET/init.sh"
+        # Run flash init.sh if it exists 
+        [ ! -f $FLASHTARGET/init.sh ] && echo -e "#!/bin/sh\n# Place init logic here\n\n" > $FLASHTARGET/init.sh && chmod a+x $FLASHTARGET/init.sh
+        [ -f $FLASHTARGET/init.sh ] && $FLASHTARGET/init.sh 
+        
+        
+        ;;
+  stop)
+        echo "FlashInit: Unmounting.. "
+        unmount /root
+        unmount /etc
+        unmount /flash
+        
+        #[ $? = 0 ] && echo "OK" || echo "FAIL"
+        ;;
+  restart|reload)
+        "$0" stop
+        "$0" start
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?
+
+
+
 
 
 
