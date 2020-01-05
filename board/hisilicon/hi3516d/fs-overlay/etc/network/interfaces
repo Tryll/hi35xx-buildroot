@@ -5,4 +5,5 @@ iface lo inet loopback
 # ethernet
 auto eth0
 iface eth0 inet dhcp
+        udhcpc_opts -b
 
