@@ -20,6 +20,7 @@ $wc.UploadString("http://192.168.1.110/form/sys_get","Group=DeviceInfo")
 Dockerfile - Build environment:
 #######################################################################################################################
 
+
 FROM debian AS HisiBuilder
 
 # Install dependencies
@@ -44,6 +45,9 @@ RUN apt-get update && apt-get install -y -q \
     libncurses5-dev \
     locales \
     make \
+    cmake \
+    lz4 \
+    ccache \
     patch \
     perl \
     python \
@@ -56,6 +60,7 @@ RUN apt-get update && apt-get install -y -q \
     u-boot-tools \
     gcc-multilib \
     g++-multilib \
+    && apt-get install -y -q gcc-arm-linux-gnueabihf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -66,6 +71,7 @@ RUN git clone --depth 1 https://github.com/Tryll/hi35xx-buildroot /buildroot
 WORKDIR /buildroot
 
 RUN ["/bin/bash"]
+
 #######################################################################################################################
 
 Docker:
